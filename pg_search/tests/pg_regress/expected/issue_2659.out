@@ -1,0 +1,43 @@
+DROP VIEW IF EXISTS issue2659_view;
+DROP TABLE IF EXISTS issue2659_base, issue2659_text;
+CREATE TABLE issue2659_base
+(
+    id         serial not null
+        constraint issue2659_base_id primary key,
+    title      varchar,
+    author     varchar,
+    date_added timestamp
+);
+CREATE INDEX idxissue2659_base ON issue2659_base
+    USING bm25 (id, title, author, date_added)
+    WITH (key_field='id');
+CREATE TABLE issue2659_text
+(
+    doc_id    bigint references issue2659_base (id) on delete cascade,
+    full_text text
+);
+CREATE INDEX idxissue2659_text ON issue2659_text
+    USING bm25 (doc_id, full_text)
+    WITH (key_field='doc_id');
+CREATE OR REPLACE VIEW issue2659_view AS
+SELECT issue2659_base.*,
+       any_value(issue2659_text.full_text) as full_text
+FROM issue2659_base
+         LEFT JOIN issue2659_text
+                   ON issue2659_text.doc_id = issue2659_base.id
+GROUP BY issue2659_base.id;
+-- works fine
+SELECT * FROM issue2659_base WHERE author @@@ 'Sally';
+ id | title | author | date_added 
+----+-------+--------+------------
+(0 rows)
+
+-- works fine
+SELECT * FROM issue2659_text WHERE full_text @@@ 'document';
+ doc_id | full_text 
+--------+-----------
+(0 rows)
+
+-- error
+SELECT * FROM issue2659_view WHERE full_text @@@ 'document';
+ERROR:  Cannot open relation with oid=0
