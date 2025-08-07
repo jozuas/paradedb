@@ -196,6 +196,37 @@ fn sort_by_row_return_scores(mut conn: PgConnection) {
 }
 
 #[rstest]
+async fn sort_cast(mut conn: PgConnection) {
+    r#"
+    CREATE TABLE test_int (id SERIAL PRIMARY KEY, rating INTEGER);
+    INSERT INTO test_int (rating) VALUES (1), (2), (3), (11), (12);
+
+    CREATE INDEX on test_int USING bm25 (id, rating) WITH (key_field = 'id');
+    "#
+    .execute(&mut conn);
+
+    let query = r#"
+        SELECT rating
+        FROM test_int
+        WHERE id @@@ paradedb.all()
+        ORDER BY rating::text DESC LIMIT 10;"#;
+
+    let (plan,): (Value,) =
+        format!("EXPLAIN (ANALYZE, VERBOSE, FORMAT JSON) {query}").fetch_one(&mut conn);
+    let results = query.fetch::<(i32,)>(&mut conn);
+
+    eprintln!("plan: {plan:#?}");
+
+    eprintln!("results: {results:#?}");
+
+    // Since the ORDER BY contains a cast, we should not attempt TopN.
+    assert_eq!(
+        plan.pointer("/0/Plan/Plans/0/Plans/0/Exec Method"),
+        Some(&Value::String(String::from("NormalScanExecState")))
+    );
+}
+
+#[rstest]
 async fn test_incremental_sort_with_partial_order(mut conn: PgConnection) {
     if pg_major_version(&mut conn) < 16 {
         // Incremental Sort is only supported >=16.
