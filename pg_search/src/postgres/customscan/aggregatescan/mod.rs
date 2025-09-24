@@ -59,7 +59,6 @@ use tantivy::schema::OwnedValue;
 use tantivy::Index;
 
 // Constants for better maintainability
-const DEFAULT_BUCKET_LIMIT: u32 = 65000;
 const NO_FILTER_KEY: &str = "NO_FILTER";
 const FAILED_TO_EXECUTE_AGGREGATE: &str = "failed to execute aggregate";
 
@@ -1118,7 +1117,7 @@ fn execute_single_optimized_query(
         agg_json,
         true,                                              // solve_mvcc
         gucs::adjust_work_mem().get().try_into().unwrap(), // memory_limit
-        DEFAULT_BUCKET_LIMIT,                              // bucket_limit
+        gucs::max_term_agg_buckets() as u32,               // bucket_limit
     )
     .expect(FAILED_TO_EXECUTE_AGGREGATE);
 
@@ -1182,7 +1181,7 @@ fn execute_optimized_multi_filter_queries(
                 aggregation_jsons,
                 true,                                              // solve_mvcc
                 gucs::adjust_work_mem().get().try_into().unwrap(), // memory_limit
-                DEFAULT_BUCKET_LIMIT,                              // bucket_limit
+                gucs::max_term_agg_buckets() as u32,               // bucket_limit
             )
             .expect(FAILED_TO_EXECUTE_AGGREGATE);
 
@@ -1218,7 +1217,7 @@ fn execute_optimized_multi_filter_queries(
                 agg_json,
                 true,                                              // solve_mvcc
                 gucs::adjust_work_mem().get().try_into().unwrap(), // memory_limit
-                DEFAULT_BUCKET_LIMIT,                              // bucket_limit
+                gucs::max_term_agg_buckets() as u32,               // bucket_limit
             )
             .expect(FAILED_TO_EXECUTE_AGGREGATE);
 
