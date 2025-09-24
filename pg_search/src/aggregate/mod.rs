@@ -37,7 +37,7 @@ use rustc_hash::FxHashSet;
 use tantivy::aggregation::agg_req::Aggregations;
 use tantivy::aggregation::intermediate_agg_result::IntermediateAggregationResults;
 use tantivy::aggregation::{AggregationLimitsGuard, DistributedAggregationCollector};
-use tantivy::collector::Collector;
+use tantivy::collector::{Collector, MultiCollector};
 use tantivy::index::SegmentId;
 
 #[repr(C)]
@@ -447,6 +447,85 @@ pub fn execute_aggregate(
                 Ok(serde_json::Value::Null)
             }
         }
+    }
+}
+
+/// Execute multiple aggregations with the same filter using MultiCollector for optimal performance.
+/// This is more efficient than executing separate queries when aggregates share the same filter.
+pub fn execute_multi_aggregate_same_filter(
+    index: &PgSearchRelation,
+    query: SearchQueryInput,
+    aggregation_jsons: Vec<serde_json::Value>,
+    solve_mvcc: bool,
+    memory_limit: u64,
+    bucket_limit: u32,
+) -> Result<Vec<serde_json::Value>, Box<dyn Error>> {
+    {
+        let standalone_context = unsafe { pg_sys::CreateStandaloneExprContext() };
+        let reader = SearchIndexReader::open_with_context(
+            index,
+            query.clone(),
+            false,
+            MvccSatisfies::Snapshot,
+            NonNull::new(standalone_context),
+            None,
+        )?;
+
+        // Create MultiCollector
+        let mut multi_collector = MultiCollector::new();
+        let mut collector_handles = Vec::new();
+        let mut aggregation_requests = Vec::new();
+
+        // Add a collector for each aggregation
+        for agg_json in aggregation_jsons.iter() {
+            // Parse the aggregation JSON
+            let agg_req: Aggregations = serde_json::from_value(agg_json.clone())?;
+
+            // Create a DistributedAggregationCollector for this aggregation
+            let collector = DistributedAggregationCollector::from_aggs(
+                agg_req.clone(),
+                AggregationLimitsGuard::new(Some(memory_limit), Some(bucket_limit)),
+            );
+
+            let handle = multi_collector.add_collector(collector);
+            collector_handles.push(handle);
+            aggregation_requests.push(agg_req);
+        }
+
+        // Execute single query with all collectors
+        let mut multi_fruit = if solve_mvcc {
+            let heaprel = index
+                .heap_relation()
+                .expect("index should belong to a heap relation");
+            let mvcc_collector = MVCCFilterCollector::new(
+                multi_collector,
+                TSVisibilityChecker::with_rel_and_snap(heaprel.as_ptr(), unsafe {
+                    pg_sys::GetActiveSnapshot()
+                }),
+            );
+            reader.collect(mvcc_collector)
+        } else {
+            reader.collect(multi_collector)
+        };
+
+        // Extract results from each collector
+        let mut results = Vec::new();
+        for (handle, aggregation_request) in collector_handles
+            .into_iter()
+            .zip(aggregation_requests.into_iter())
+        {
+            let intermediate_result = handle.extract(&mut multi_fruit);
+
+            // Convert intermediate result to final result
+            let final_result = intermediate_result.into_final_result(
+                aggregation_request,
+                AggregationLimitsGuard::new(Some(memory_limit), Some(bucket_limit)),
+            )?;
+
+            results.push(serde_json::to_value(final_result)?);
+        }
+
+        Ok(results)
     }
 }
 

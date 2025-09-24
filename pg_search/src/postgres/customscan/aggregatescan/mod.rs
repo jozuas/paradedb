@@ -20,7 +20,7 @@ pub mod scan_state;
 
 use std::ffi::CStr;
 
-use crate::aggregate::execute_aggregate;
+use crate::aggregate::{execute_aggregate, execute_multi_aggregate_same_filter};
 use crate::api::operator::anyelement_query_input_opoid;
 use crate::api::{HashMap, HashSet, OrderByFeature};
 use crate::gucs;
@@ -1135,7 +1135,7 @@ fn execute_optimized_multi_filter_queries(
 ) -> std::vec::IntoIter<GroupedAggregateRow> {
     let mut all_results = Vec::new();
 
-    // Execute one query per filter group
+    // Execute one query per filter group, using MultiCollector when beneficial
     for (filter_expr, aggregate_indices) in filter_groups.iter() {
         // Combine base query with group filter
         let combined_query = state
@@ -1151,36 +1151,79 @@ fn execute_optimized_multi_filter_queries(
             })
             .collect();
 
-        // Create target list mapping for this group
-        let target_list_mapping = aggregate_indices
-            .iter()
-            .map(|&idx| {
-                crate::postgres::customscan::aggregatescan::privdat::TargetListEntry::Aggregate(idx)
-            })
-            .collect();
+        // If we have multiple aggregates for the same filter, use MultiCollector for efficiency
+        if group_aggregates.len() > 1 {
+            // Create separate aggregation JSONs for each aggregate
+            let mut aggregation_jsons = Vec::new();
 
-        // Create temporary state for this group
-        let temp_scan_state = create_temp_scan_state(
-            state,
-            group_aggregates,
-            combined_query.clone(),
-            Some(target_list_mapping),
-        );
+            for (i, aggregate) in group_aggregates.iter().enumerate() {
+                // Create target list mapping for this individual aggregate
+                let target_list_mapping = vec![
+                    crate::postgres::customscan::aggregatescan::privdat::TargetListEntry::Aggregate(
+                        aggregate_indices[i],
+                    ),
+                ];
 
-        let agg_json = temp_scan_state.aggregates_to_json();
+                // Create temporary state for this individual aggregate
+                let temp_scan_state = create_temp_scan_state(
+                    state,
+                    vec![aggregate.clone()],
+                    combined_query.clone(),
+                    Some(target_list_mapping),
+                );
 
-        // Execute the query for this group
-        let result = execute_aggregate(
-            state.custom_state().indexrel(),
-            combined_query,
-            agg_json,
-            true,                                              // solve_mvcc
-            gucs::adjust_work_mem().get().try_into().unwrap(), // memory_limit
-            DEFAULT_BUCKET_LIMIT,                              // bucket_limit
-        )
-        .expect(FAILED_TO_EXECUTE_AGGREGATE);
+                aggregation_jsons.push(temp_scan_state.aggregates_to_json());
+            }
 
-        all_results.push((result, aggregate_indices.clone()));
+            // Execute all aggregates with MultiCollector
+            let results = execute_multi_aggregate_same_filter(
+                state.custom_state().indexrel(),
+                combined_query,
+                aggregation_jsons,
+                true,                                              // solve_mvcc
+                gucs::adjust_work_mem().get().try_into().unwrap(), // memory_limit
+                DEFAULT_BUCKET_LIMIT,                              // bucket_limit
+            )
+            .expect(FAILED_TO_EXECUTE_AGGREGATE);
+
+            // Add each result with its corresponding aggregate index
+            for (i, result) in results.into_iter().enumerate() {
+                all_results.push((result, vec![aggregate_indices[i]]));
+            }
+        } else {
+            // Single aggregate - use the original approach
+            let target_list_mapping = aggregate_indices
+                .iter()
+                .map(|&idx| {
+                    crate::postgres::customscan::aggregatescan::privdat::TargetListEntry::Aggregate(
+                        idx,
+                    )
+                })
+                .collect();
+
+            // Create temporary state for this group
+            let temp_scan_state = create_temp_scan_state(
+                state,
+                group_aggregates,
+                combined_query.clone(),
+                Some(target_list_mapping),
+            );
+
+            let agg_json = temp_scan_state.aggregates_to_json();
+
+            // Execute the query for this group
+            let result = execute_aggregate(
+                state.custom_state().indexrel(),
+                combined_query,
+                agg_json,
+                true,                                              // solve_mvcc
+                gucs::adjust_work_mem().get().try_into().unwrap(), // memory_limit
+                DEFAULT_BUCKET_LIMIT,                              // bucket_limit
+            )
+            .expect(FAILED_TO_EXECUTE_AGGREGATE);
+
+            all_results.push((result, aggregate_indices.clone()));
+        }
     }
 
     // Merge results from all groups
