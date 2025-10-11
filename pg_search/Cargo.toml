@@ -50,7 +50,7 @@ bincode = { version = "2.0.1", features = [
 ], default-features = false }
 rand = "0.9.1"
 proptest = "1.7.0"
-tinyvec = "1.9.0"
+tinyvec = { version = "1.10.0", features = ["alloc"] }
 postcard = { version = "1.1.1", features = [
   "use-std",
 ], default-features = false }
