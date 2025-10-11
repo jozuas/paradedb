@@ -19,7 +19,7 @@ pub mod cjk;
 pub mod code;
 #[cfg(feature = "icu")]
 pub mod icu;
-pub mod lindera;
+
 pub mod manager;
 
 use tantivy::tokenizer::{

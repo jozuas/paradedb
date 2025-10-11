@@ -20,12 +20,7 @@ use std::fmt::Write;
 
 #[cfg(feature = "icu")]
 use crate::icu::ICUTokenizer;
-use crate::{
-    cjk::ChineseTokenizer,
-    code::CodeTokenizer,
-    lindera::{LinderaChineseTokenizer, LinderaJapaneseTokenizer, LinderaKoreanTokenizer},
-    DEFAULT_REMOVE_TOKEN_LENGTH,
-};
+use crate::{cjk::ChineseTokenizer, code::CodeTokenizer, DEFAULT_REMOVE_TOKEN_LENGTH};
 use anyhow::Result;
 use serde::de::{self, Deserializer};
 use serde::{Deserialize, Serialize};
@@ -258,9 +253,6 @@ pub enum SearchTokenizer {
         prefix_only: bool,
         filters: SearchTokenizerFilters,
     },
-    ChineseLindera(SearchTokenizerFilters),
-    JapaneseLindera(SearchTokenizerFilters),
-    KoreanLindera(SearchTokenizerFilters),
     #[cfg(feature = "icu")]
     #[strum(serialize = "icu")]
     ICUTokenizer(SearchTokenizerFilters),
@@ -306,9 +298,7 @@ impl SearchTokenizer {
                 "max_gram": max_gram,
                 "prefix_only": prefix_only,
             }),
-            SearchTokenizer::ChineseLindera(_filters) => json!({ "type": "chinese_lindera" }),
-            SearchTokenizer::JapaneseLindera(_filters) => json!({ "type": "japanese_lindera" }),
-            SearchTokenizer::KoreanLindera(_filters) => json!({ "type": "korean_lindera" }),
+
             #[cfg(feature = "icu")]
             SearchTokenizer::ICUTokenizer(_filters) => json!({ "type": "icu" }),
             SearchTokenizer::Jieba(_filters) => json!({ "type": "jieba" }),
@@ -375,9 +365,7 @@ impl SearchTokenizer {
                     filters,
                 })
             }
-            "chinese_lindera" => Ok(SearchTokenizer::ChineseLindera(filters)),
-            "japanese_lindera" => Ok(SearchTokenizer::JapaneseLindera(filters)),
-            "korean_lindera" => Ok(SearchTokenizer::KoreanLindera(filters)),
+
             #[cfg(feature = "icu")]
             "icu" => Ok(SearchTokenizer::ICUTokenizer(filters)),
             "jieba" => Ok(SearchTokenizer::Jieba(filters)),
@@ -492,35 +480,7 @@ impl SearchTokenizer {
                     .filter(filters.ascii_folding())
                     .build(),
             ),
-            SearchTokenizer::ChineseLindera(filters) => Some(
-                TextAnalyzer::builder(LinderaChineseTokenizer::default())
-                    .filter(filters.remove_long_filter())
-                    .filter(filters.lower_caser())
-                    .filter(filters.stemmer())
-                    .filter(filters.stopwords_language())
-                    .filter(filters.stopwords())
-                    .filter(filters.ascii_folding())
-                    .build(),
-            ),
-            SearchTokenizer::JapaneseLindera(filters) => Some(
-                TextAnalyzer::builder(LinderaJapaneseTokenizer::default())
-                    .filter(filters.remove_long_filter())
-                    .filter(filters.lower_caser())
-                    .filter(filters.stemmer())
-                    .filter(filters.stopwords_language())
-                    .filter(filters.stopwords())
-                    .filter(filters.ascii_folding())
-                    .build(),
-            ),
-            SearchTokenizer::KoreanLindera(filters) => Some(
-                TextAnalyzer::builder(LinderaKoreanTokenizer::default())
-                    .filter(filters.remove_long_filter())
-                    .filter(filters.lower_caser())
-                    .filter(filters.stemmer())
-                    .filter(filters.stopwords_language())
-                    .filter(filters.stopwords())
-                    .build(),
-            ),
+
             // Deprecated, use `stemmer` filter instead
             SearchTokenizer::EnStem(filters) => Some(
                 TextAnalyzer::builder(SimpleTokenizer::default())
@@ -580,9 +540,7 @@ impl SearchTokenizer {
             SearchTokenizer::ChineseCompatible(filters) => filters,
             SearchTokenizer::SourceCode(filters) => filters,
             SearchTokenizer::Ngram { filters, .. } => filters,
-            SearchTokenizer::ChineseLindera(filters) => filters,
-            SearchTokenizer::JapaneseLindera(filters) => filters,
-            SearchTokenizer::KoreanLindera(filters) => filters,
+
             #[cfg(feature = "icu")]
             SearchTokenizer::ICUTokenizer(filters) => filters,
             SearchTokenizer::Jieba(filters) => filters,
@@ -642,11 +600,7 @@ impl SearchTokenizer {
                 prefix_only,
                 filters: _,
             } => format!("ngram_mingram:{min_gram}_maxgram:{max_gram}_prefixonly:{prefix_only}{filters_suffix}"),
-            SearchTokenizer::ChineseLindera(_filters) => format!("chinese_lindera{filters_suffix}"),
-            SearchTokenizer::JapaneseLindera(_filters) => {
-                format!("japanese_lindera{filters_suffix}")
-            }
-            SearchTokenizer::KoreanLindera(_filters) => format!("korean_lindera{filters_suffix}"),
+
             #[cfg(feature = "icu")]
             SearchTokenizer::ICUTokenizer(_filters) => format!("icu{filters_suffix}"),
             SearchTokenizer::Jieba(_filters) => format!("jieba{filters_suffix}"),

@@ -102,9 +102,6 @@ fn list_tokenizers(mut conn: PgConnection) {
                 ("chinese_compatible".into(),),
                 ("source_code".into(),),
                 ("ngram".into(),),
-                ("chinese_lindera".into(),),
-                ("japanese_lindera".into(),),
-                ("korean_lindera".into(),),
                 ("icu".into(),),
                 ("jieba".into(),)
             ]
@@ -124,9 +121,6 @@ fn list_tokenizers(mut conn: PgConnection) {
                 ("chinese_compatible".into(),),
                 ("source_code".into(),),
                 ("ngram".into(),),
-                ("chinese_lindera".into(),),
-                ("japanese_lindera".into(),),
-                ("korean_lindera".into(),),
                 ("jieba".into(),)
             ]
         );
