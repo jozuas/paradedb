@@ -2429,7 +2429,7 @@ fn available_tokenizers(mut conn: PgConnection) {
         key_field = 'id',
         text_fields = '{
             "description": {
-            "tokenizer": {"type": "chinese_lindera"}
+            "tokenizer": {"type": "jieba"}
             }
         }'
     );

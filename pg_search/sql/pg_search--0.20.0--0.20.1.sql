@@ -4,12 +4,13 @@
 -- pg_search::api::tokenizers::definitions::pdb::varchar_array_to_lindera
 -- requires:
 --   tokenize_lindera
-CREATE  FUNCTION pdb."varchar_array_to_lindera"(
-	"arr" varchar[] /* pg_search::api::tokenizers::GenericTypeWrapper<alloc::vec::Vec<alloc::string::String>, pg_search::api::tokenizers::VarcharArrayMarker> */
-) RETURNS pdb.lindera /* pg_search::api::tokenizers::GenericTypeWrapper<pg_search::api::tokenizers::definitions::pdb::Lindera, pg_search::api::tokenizers::definitions::pdb::LinderaVarcharArrayMarker> */
-IMMUTABLE STRICT PARALLEL SAFE
-LANGUAGE c /* Rust */
-AS 'MODULE_PATHNAME', 'varchar_array_to_lindera_wrapper';
+-- REMOVED: Lindera support has been removed from pg_search
+-- CREATE  FUNCTION pdb."varchar_array_to_lindera"(
+-- 	"arr" varchar[] /* pg_search::api::tokenizers::GenericTypeWrapper<alloc::vec::Vec<alloc::string::String>, pg_search::api::tokenizers::VarcharArrayMarker> */
+-- ) RETURNS pdb.lindera /* pg_search::api::tokenizers::GenericTypeWrapper<pg_search::api::tokenizers::definitions::pdb::Lindera, pg_search::api::tokenizers::definitions::pdb::LinderaVarcharArrayMarker> */
+-- IMMUTABLE STRICT PARALLEL SAFE
+-- LANGUAGE c /* Rust */
+-- AS 'MODULE_PATHNAME', 'varchar_array_to_lindera_wrapper';
 /* </end connected objects> */
 /* <begin connected objects> */
 -- pg_search/src/api/tokenizers/definitions.rs:232
@@ -144,7 +145,8 @@ LANGUAGE c /* Rust */
 AS 'MODULE_PATHNAME', 'varchar_array_to_jieba_wrapper';
 
 CREATE CAST (varchar[] AS pdb.regex_pattern) WITH FUNCTION pdb.varchar_array_to_regex_pattern AS ASSIGNMENT;
-CREATE CAST (varchar[] AS pdb.lindera) WITH FUNCTION pdb.varchar_array_to_lindera AS ASSIGNMENT;
+-- REMOVED: Lindera support has been removed from pg_search
+-- CREATE CAST (varchar[] AS pdb.lindera) WITH FUNCTION pdb.varchar_array_to_lindera AS ASSIGNMENT;
 CREATE CAST (varchar[] AS pdb.simple) WITH FUNCTION pdb.varchar_array_to_simple AS ASSIGNMENT;
 CREATE CAST (varchar[] AS pdb.literal) WITH FUNCTION pdb.varchar_array_to_literal AS ASSIGNMENT;
 CREATE CAST (varchar[] AS pdb.unicode_words) WITH FUNCTION pdb.varchar_array_to_unicode_words AS ASSIGNMENT;

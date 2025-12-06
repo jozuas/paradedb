@@ -35,7 +35,7 @@ pub(crate) mod pdb {
     };
     use pgrx::{extension_sql, pg_extern, pg_sys, FromDatum, IntoDatum};
     use std::ffi::CString;
-    use tokenizers::manager::{LinderaLanguage, SearchTokenizerFilters};
+    use tokenizers::manager::SearchTokenizerFilters;
     use tokenizers::SearchTokenizer;
 
     pub trait TokenizerCtor {
@@ -309,19 +309,6 @@ pub(crate) mod pdb {
         text_array_to_chinese_compatible,
         varchar_array_to_chinese_compatible,
         "chinese_compatible",
-        preferred = false,
-        custom_typmod = false
-    );
-
-    define_tokenizer_type!(
-        Lindera,
-        SearchTokenizer::Lindera(LinderaLanguage::Chinese, SearchTokenizerFilters::default()),
-        tokenize_lindera,
-        json_to_lindera,
-        jsonb_to_lindera,
-        text_array_to_lindera,
-        varchar_array_to_lindera,
-        "lindera",
         preferred = false,
         custom_typmod = false
     );

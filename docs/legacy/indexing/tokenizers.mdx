@@ -202,29 +202,9 @@ WITH (
 );
 ```
 
-### Lindera
-
-The Lindera tokenizer is a more advanced CJK tokenizer that uses prebuilt Chinese, Japanese, or Korean dictionaries to break text into meaningful tokens (words or phrases) rather than on
-individual characters.
-
-`chinese_lindera` uses the CC-CEDICT dictionary, `korean_lindera` uses the KoDic dictionary, and `japanese_lindera` uses the IPADIC dictionary.
-
-```sql
-CREATE INDEX search_idx ON mock_items
-USING bm25 (id, description)
-WITH (
-    key_field = 'id',
-    text_fields = '{
-        "description": {
-          "tokenizer": {"type": "chinese_lindera"}
-        }
-    }'
-);
-```
-
 ### Jieba
 
-[Jieba](https://github.com/jiegec/tantivy-jieba) is a Chinese language tokenizer that uses a dictionary-based approach for word segmentation. It is generally superior for tokenization accuracy of Chinese text, but may run significantly slower than either `chinese_lindera` or `chinese_compatible`.
+[Jieba](https://github.com/jiegec/tantivy-jieba) is a Chinese language tokenizer that uses a dictionary-based approach for word segmentation. It is generally superior for tokenization accuracy of Chinese text, but may run significantly slower than `chinese_compatible`.
 
 ```sql
 CREATE INDEX search_idx ON mock_items

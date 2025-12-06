@@ -1,48 +1,48 @@
 CREATE EXTENSION IF NOT EXISTS pg_search;
 SELECT 'Running Shoes.  olé'::pdb.simple::text[];
-        text         
+        text
 ---------------------
  {running,shoes,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('lowercase=false')::text[];
-        text         
+        text
 ---------------------
  {Running,Shoes,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
-      text      
+      text
 ----------------
  {Run,Shoe,ole}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.whitespace::text[];
-         text         
+         text
 ----------------------
  {running,shoes.,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.whitespace('lowercase=false')::text[];
-         text         
+         text
 ----------------------
  {Running,Shoes.,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.whitespace('lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
-       text       
+       text
 ------------------
  {Run,Shoes.,ole}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.literal::text[];
-          text           
+          text
 -------------------------
  {"Running Shoes.  olé"}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.literal('alias=foo')::text[];  -- only option supported for exact
-          text           
+          text
 -------------------------
  {"Running Shoes.  olé"}
 (1 row)
@@ -50,93 +50,37 @@ SELECT 'Running Shoes.  olé'::pdb.literal('alias=foo')::text[];  -- only option
 SELECT 'Running Shoes.  olé'::pdb.literal('lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
 ERROR:  type modifier is not allowed for type "literal" at character 31
 SELECT 'Running Shoes.  olé'::pdb.chinese_compatible::text[];
-        text         
+        text
 ---------------------
  {running,shoes,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.chinese_compatible('lowercase=false')::text[];
-        text         
+        text
 ---------------------
  {Running,Shoes,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.chinese_compatible('lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
-      text      
+      text
 ----------------
  {Run,Shoe,ole}
 (1 row)
 
-SELECT 'Running Shoes.  olé'::pdb.lindera::text[]; -- error, needs a language
-ERROR:  Missing required option: 'language'
-SELECT 'Running Shoes.  olé'::pdb.lindera('language=chinese')::text[]; -- error, needs a language
-              text              
---------------------------------
- {running," ",shoes,.,"  ",olé}
-(1 row)
-
-SELECT 'Running Shoes.  olé'::pdb.lindera('language=japanese')::text[]; -- error, needs a language
-              text              
---------------------------------
- {running," ",shoes,.,"  ",olé}
-(1 row)
-
-SELECT 'Running Shoes.  olé'::pdb.lindera('language=korean')::text[]; -- error, needs a language
-              text              
---------------------------------
- {running," ",shoes,.,"  ",olé}
-(1 row)
-
-SELECT 'Running Shoes.  olé'::pdb.lindera(chinese, 'lowercase=false')::text[];
-              text              
---------------------------------
- {Running," ",Shoes,.,"  ",olé}
-(1 row)
-
-SELECT 'Running Shoes.  olé'::pdb.lindera(chinese, 'lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
-           text            
----------------------------
- {Run," ",Shoe,.,"  ",ole}
-(1 row)
-
-SELECT 'Running Shoes.  olé'::pdb.lindera(japanese, 'lowercase=false')::text[];
-              text              
---------------------------------
- {Running," ",Shoes,.,"  ",olé}
-(1 row)
-
-SELECT 'Running Shoes.  olé'::pdb.lindera(japanese, 'lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
-           text            
----------------------------
- {Run," ",Shoe,.,"  ",ole}
-(1 row)
-
-SELECT 'Running Shoes.  olé'::pdb.lindera(korean, 'lowercase=false')::text[];
-              text              
---------------------------------
- {Running," ",Shoes,.,"  ",olé}
-(1 row)
-
-SELECT 'Running Shoes.  olé'::pdb.lindera(korean, 'lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
-           text            
----------------------------
- {Run," ",Shoe,.,"  ",ole}
-(1 row)
-
 SELECT 'Running Shoes.  olé'::pdb.jieba::text[];
-                text                
+                text
 ------------------------------------
  {running," ",shoes,.," "," ",ol,é}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.jieba('lowercase=false')::text[];
-                text                
+                text
 ------------------------------------
  {Running," ",Shoes,.," "," ",ol,é}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.jieba('lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
-             text              
+             text
 -------------------------------
  {Run," ",Shoe,.," "," ",ol,e}
 (1 row)
@@ -144,151 +88,151 @@ SELECT 'Running Shoes.  olé'::pdb.jieba('lowercase=false', 'stemmer=english', '
 SELECT 'Running Shoes.  olé'::pdb.ngram::text[]; -- error, needs min/max
 ERROR:  Missing required option: 'min'
 SELECT 'Running Shoes.  olé'::pdb.ngram(2, 3)::text[];
-                                                                        text                                                                         
+                                                                        text
 -----------------------------------------------------------------------------------------------------------------------------------------------------
  {ru,run,un,unn,nn,nni,ni,nin,in,ing,ng,"ng ","g ","g s"," s"," sh",sh,sho,ho,hoe,oe,oes,es,es.,s.,"s. ",". ",".  ","  ","  o"," o"," ol",ol,olé,lé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.ngram(2, 3, 'prefix_only=true')::text[];
-   text   
+   text
 ----------
  {ru,run}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.ngram('min=2', 'max=3', 'prefix_only=true')::text[];
-   text   
+   text
 ----------
  {ru,run}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.ngram(2, 3, 'lowercase=false')::text[];
-                                                                        text                                                                         
+                                                                        text
 -----------------------------------------------------------------------------------------------------------------------------------------------------
  {Ru,Run,un,unn,nn,nni,ni,nin,in,ing,ng,"ng ","g ","g S"," S"," Sh",Sh,Sho,ho,hoe,oe,oes,es,es.,s.,"s. ",". ",".  ","  ","  o"," o"," ol",ol,olé,lé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.ngram(2, 3, 'lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
-                                                                        text                                                                        
+                                                                        text
 ----------------------------------------------------------------------------------------------------------------------------------------------------
  {Ru,Run,un,unn,nn,nni,ni,nin,in,ing,ng,"ng ","g ","g S"," S"," Sh",Sh,Sho,ho,hoe,oe,oe,es,es.,s.,"s. ",". ",".  ","  ","  o"," o"," ol",ol,ole,le}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.ngram('min=2', 'max=3', 'lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
-                                                                        text                                                                        
+                                                                        text
 ----------------------------------------------------------------------------------------------------------------------------------------------------
  {Ru,Run,un,unn,nn,nni,ni,nin,in,ing,ng,"ng ","g ","g S"," S"," Sh",Sh,Sho,ho,hoe,oe,oe,es,es.,s.,"s. ",". ",".  ","  ","  o"," o"," ol",ol,ole,le}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=arabic')::text[];
-        text         
+        text
 ---------------------
  {running,shoes,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=danish')::text[];
-        text         
+        text
 ---------------------
  {running,shoes,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=dutch')::text[];
-        text         
+        text
 ---------------------
  {running,shoes,ole}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=english')::text[];
-      text      
+      text
 ----------------
  {run,shoe,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=finnish')::text[];
-        text         
+        text
 ---------------------
  {running,shoes,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=french')::text[];
-       text        
+       text
 -------------------
  {running,sho,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=german')::text[];
-        text         
+        text
 ---------------------
  {running,shoes,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=greek')::text[];
-        text         
+        text
 ---------------------
  {running,shoes,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=hungarian')::text[];
-        text        
+        text
 --------------------
  {running,shoes,ol}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=italian')::text[];
-        text         
+        text
 ---------------------
  {running,shoes,olè}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=norwegian')::text[];
-        text         
+        text
 ---------------------
  {running,shoes,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=polish')::text[];
-        text         
+        text
 ---------------------
  {running,shoes,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=portuguese')::text[];
-       text        
+       text
 -------------------
  {running,sho,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=romanian')::text[];
-        text         
+        text
 ---------------------
  {running,shoes,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=russian')::text[];
-        text         
+        text
 ---------------------
  {running,shoes,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=spanish')::text[];
-       text        
+       text
 -------------------
  {running,sho,ole}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=swedish')::text[];
-        text         
+        text
 ---------------------
  {running,shoes,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=tamil')::text[];
-        text         
+        text
 ---------------------
  {running,shoes,olé}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=turkish')::text[];
-         text         
+         text
 ----------------------
  {runningi,shoes,olé}
 (1 row)
@@ -296,7 +240,7 @@ SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=turkish')::text[];
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=foo')::text[]; -- error
 ERROR:  Invalid value for option 'stemmer': must be one of: [Arabic, Danish, Dutch, English, Finnish, French, German, Greek, Hungarian, Italian, Norwegian, Polish, Portuguese, Romanian, Russian, Spanish, Swedish, Tamil, Turkish], got 'foo'
 SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=english', 'lowercase=false', 'ascii_folding=true')::text[];
-      text      
+      text
 ----------------
  {Run,Shoe,ole}
 (1 row)
@@ -304,49 +248,49 @@ SELECT 'Running Shoes.  olé'::pdb.simple('stemmer=english', 'lowercase=false', 
 SELECT 'Running Shoes.  olé'::pdb.regex_pattern::text[]; -- error, needs a regular expression
 ERROR:  Missing required option: 'pattern'
 SELECT 'Running Shoes.  olé'::pdb.regex_pattern('ing|oes')::text[];
-   text    
+   text
 -----------
  {ing,oes}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.regex_pattern('ing|oes', 'lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
-   text   
+   text
 ----------
  {ing,oe}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.source_code::text[];
-        text         
+        text
 ---------------------
  {running,shoes,ole}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.source_code('lowercase=false')::text[];
-        text         
+        text
 ---------------------
  {Running,Shoes,ole}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.source_code('lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
-      text      
+      text
 ----------------
  {Run,Shoe,ole}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.literal_normalized::text[];
-          text           
+          text
 -------------------------
  {"running shoes.  olé"}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.literal_normalized('lowercase=false')::text[];
-          text           
+          text
 -------------------------
  {"Running Shoes.  olé"}
 (1 row)
 
 SELECT 'Running Shoes.  olé'::pdb.literal_normalized('lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
-          text           
+          text
 -------------------------
  {"Running Shoes.  ole"}
 (1 row)

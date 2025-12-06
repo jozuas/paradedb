@@ -1,9 +1,6 @@
 SELECT 'this is a test.'::pdb.chinese_compatible::text[];
 SELECT 'this is a test.'::pdb.literal::text[];
 SELECT 'this is a test.'::pdb.jieba::text[];
-SELECT 'this is a test.'::pdb.lindera(chinese)::text[];
-SELECT 'this is a test.'::pdb.lindera(japanese)::text[];
-SELECT 'this is a test.'::pdb.lindera(korean)::text[];
 SELECT 'this is a test.'::pdb.ngram(3, 5)::text[];
 SELECT 'this is a test.'::pdb.regex_pattern('is|a')::text[];
 SELECT 'this is a test.'::pdb.simple::text[];

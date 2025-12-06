@@ -90,11 +90,7 @@ jobs:
       - name: Initialize cargo-pgrx environment for ParadeDB $PRIOR_PG_SEARCH_VERSION
         run: cargo pgrx init "--pg${{ matrix.pg_version }}=/usr/lib/postgresql/${{ matrix.pg_version }}/bin/pg_config"
 
-      # While technically backwards-compatible since 0.15.0, our Lindera dependency made a backwards-incompatible
-      # change by deleting its previous repository URL and forcing dependencies to upgrade, which forces us to test
-      # our upgrade compatibility from 0.15.19 onwards
-      #
-      # And to complicate matters, v0.15.19 stopped being able to compile on modern rust, so now we just use $PRIOR_PG_SEARCH_VERSION
+      # We test upgrade compatibility from $PRIOR_PG_SEARCH_VERSION onwards
       - name: Checkout ParadeDB $PRIOR_PG_SEARCH_VERSION
         run: |
           # cleanup any local modifications the above steps may have made

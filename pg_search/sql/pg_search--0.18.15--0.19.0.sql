@@ -631,23 +631,23 @@ CREATE TYPE pdb.source_code (
 -- pg_search/src/api/tokenizers/definitions.rs:236
 -- creates:
 --   Type(pg_search::api::tokenizers::definitions::pdb::Lindera)
+-- REMOVED: Lindera support has been removed from pg_search
 
-
-CREATE TYPE pdb.lindera;
-CREATE OR REPLACE FUNCTION pdb.lindera_in(cstring) RETURNS pdb.lindera AS 'textin' LANGUAGE internal IMMUTABLE STRICT;
-CREATE OR REPLACE FUNCTION pdb.lindera_out(pdb.lindera) RETURNS cstring AS 'textout' LANGUAGE internal IMMUTABLE STRICT;
-CREATE OR REPLACE FUNCTION pdb.lindera_send(pdb.lindera) RETURNS bytea AS 'textsend' LANGUAGE internal IMMUTABLE STRICT;
-CREATE OR REPLACE FUNCTION pdb.lindera_recv(internal) RETURNS pdb.lindera AS 'textrecv' LANGUAGE internal IMMUTABLE STRICT;
-CREATE TYPE pdb.lindera (
-                            INPUT = pdb.lindera_in,
-                            OUTPUT = pdb.lindera_out,
-                            SEND = pdb.lindera_send,
-                            RECEIVE = pdb.lindera_recv,
-                            COLLATABLE = true,
-                            CATEGORY = 't', -- 't' is for tokenizer
-                            PREFERRED = false,
-                            LIKE = text
-                        );
+-- CREATE TYPE pdb.lindera;
+-- CREATE OR REPLACE FUNCTION pdb.lindera_in(cstring) RETURNS pdb.lindera AS 'textin' LANGUAGE internal IMMUTABLE STRICT;
+-- CREATE OR REPLACE FUNCTION pdb.lindera_out(pdb.lindera) RETURNS cstring AS 'textout' LANGUAGE internal IMMUTABLE STRICT;
+-- CREATE OR REPLACE FUNCTION pdb.lindera_send(pdb.lindera) RETURNS bytea AS 'textsend' LANGUAGE internal IMMUTABLE STRICT;
+-- CREATE OR REPLACE FUNCTION pdb.lindera_recv(internal) RETURNS pdb.lindera AS 'textrecv' LANGUAGE internal IMMUTABLE STRICT;
+-- CREATE TYPE pdb.lindera (
+--                             INPUT = pdb.lindera_in,
+--                             OUTPUT = pdb.lindera_out,
+--                             SEND = pdb.lindera_send,
+--                             RECEIVE = pdb.lindera_recv,
+--                             COLLATABLE = true,
+--                             CATEGORY = 't', -- 't' is for tokenizer
+--                             PREFERRED = false,
+--                             LIKE = text
+--                         );
 /* </end connected objects> */
 
 /* <begin connected objects> */
@@ -729,8 +729,9 @@ ALTER TYPE pdb.ngram SET (TYPMOD_IN = generic_typmod_in, TYPMOD_OUT = generic_ty
 --   generic_typmod_in
 --   generic_typmod_out
 --   lindera_definition
+-- REMOVED: Lindera support has been removed from pg_search
 
-ALTER TYPE pdb.lindera SET (TYPMOD_IN = generic_typmod_in, TYPMOD_OUT = generic_typmod_out);
+-- ALTER TYPE pdb.lindera SET (TYPMOD_IN = generic_typmod_in, TYPMOD_OUT = generic_typmod_out);
 /* </end connected objects> */
 
 /* <begin connected objects> */
@@ -908,12 +909,13 @@ AS 'MODULE_PATHNAME', 'json_to_regex_wrapper';
 /* <begin connected objects> */
 -- pg_search/src/api/tokenizers/definitions.rs:236
 -- pg_search::api::tokenizers::definitions::pdb::tokenize_lindera
-CREATE  FUNCTION pdb."tokenize_lindera"(
-    "s" pdb.lindera /* pg_search::api::tokenizers::definitions::pdb::Lindera */
-) RETURNS TEXT[] /* alloc::vec::Vec<alloc::string::String> */
-    IMMUTABLE STRICT PARALLEL SAFE
-    LANGUAGE c /* Rust */
-AS 'MODULE_PATHNAME', 'tokenize_lindera_wrapper';
+-- REMOVED: Lindera support has been removed from pg_search
+-- CREATE  FUNCTION pdb."tokenize_lindera"(
+--     "s" pdb.lindera /* pg_search::api::tokenizers::definitions::pdb::Lindera */
+-- ) RETURNS TEXT[] /* alloc::vec::Vec<alloc::string::String> */
+--     IMMUTABLE STRICT PARALLEL SAFE
+--     LANGUAGE c /* Rust */
+-- AS 'MODULE_PATHNAME', 'tokenize_lindera_wrapper';
 /* </end connected objects> */
 
 /* <begin connected objects> */
@@ -921,8 +923,9 @@ AS 'MODULE_PATHNAME', 'tokenize_lindera_wrapper';
 -- requires:
 --   lindera_definition
 --   tokenize_lindera
+-- REMOVED: Lindera support has been removed from pg_search
 
-CREATE CAST (pdb.lindera AS TEXT[]) WITH FUNCTION pdb.tokenize_lindera AS IMPLICIT;
+-- CREATE CAST (pdb.lindera AS TEXT[]) WITH FUNCTION pdb.tokenize_lindera AS IMPLICIT;
 /* </end connected objects> */
 
 /* <begin connected objects> */
@@ -930,12 +933,13 @@ CREATE CAST (pdb.lindera AS TEXT[]) WITH FUNCTION pdb.tokenize_lindera AS IMPLIC
 -- pg_search::api::tokenizers::definitions::pdb::json_to_lindera
 -- requires:
 --   tokenize_lindera
-CREATE  FUNCTION pdb."json_to_lindera"(
-    "json" json /* pg_search::api::tokenizers::GenericTypeWrapper<pgrx::datum::json::Json> */
-) RETURNS pdb.lindera /* pg_search::api::tokenizers::GenericTypeWrapper<pg_search::api::tokenizers::definitions::pdb::Lindera> */
-    IMMUTABLE STRICT PARALLEL SAFE
-    LANGUAGE c /* Rust */
-AS 'MODULE_PATHNAME', 'json_to_lindera_wrapper';
+-- REMOVED: Lindera support has been removed from pg_search
+-- CREATE  FUNCTION pdb."json_to_lindera"(
+--     "json" json /* pg_search::api::tokenizers::GenericTypeWrapper<pgrx::datum::json::Json> */
+-- ) RETURNS pdb.lindera /* pg_search::api::tokenizers::GenericTypeWrapper<pg_search::api::tokenizers::definitions::pdb::Lindera> */
+--     IMMUTABLE STRICT PARALLEL SAFE
+--     LANGUAGE c /* Rust */
+-- AS 'MODULE_PATHNAME', 'json_to_lindera_wrapper';
 /* </end connected objects> */
 
 /* <begin connected objects> */
@@ -943,12 +947,13 @@ AS 'MODULE_PATHNAME', 'json_to_lindera_wrapper';
 -- pg_search::api::tokenizers::definitions::pdb::jsonb_to_lindera
 -- requires:
 --   tokenize_lindera
-CREATE  FUNCTION pdb."jsonb_to_lindera"(
-    "jsonb" jsonb /* pg_search::api::tokenizers::GenericTypeWrapper<pgrx::datum::json::JsonB> */
-) RETURNS pdb.lindera /* pg_search::api::tokenizers::GenericTypeWrapper<pg_search::api::tokenizers::definitions::pdb::Lindera> */
-    IMMUTABLE STRICT PARALLEL SAFE
-    LANGUAGE c /* Rust */
-AS 'MODULE_PATHNAME', 'jsonb_to_lindera_wrapper';
+-- REMOVED: Lindera support has been removed from pg_search
+-- CREATE  FUNCTION pdb."jsonb_to_lindera"(
+--     "jsonb" jsonb /* pg_search::api::tokenizers::GenericTypeWrapper<pgrx::datum::json::JsonB> */
+-- ) RETURNS pdb.lindera /* pg_search::api::tokenizers::GenericTypeWrapper<pg_search::api::tokenizers::definitions::pdb::Lindera> */
+--     IMMUTABLE STRICT PARALLEL SAFE
+--     LANGUAGE c /* Rust */
+-- AS 'MODULE_PATHNAME', 'jsonb_to_lindera_wrapper';
 /* </end connected objects> */
 
 /* <begin connected objects> */
@@ -957,10 +962,10 @@ AS 'MODULE_PATHNAME', 'jsonb_to_lindera_wrapper';
 --   lindera_definition
 --   json_to_lindera
 --   jsonb_to_lindera
+-- REMOVED: Lindera support has been removed from pg_search
 
-
-CREATE CAST (json AS pdb.lindera) WITH FUNCTION pdb.json_to_lindera AS ASSIGNMENT;
-CREATE CAST (jsonb AS pdb.lindera) WITH FUNCTION pdb.jsonb_to_lindera AS ASSIGNMENT;
+-- CREATE CAST (json AS pdb.lindera) WITH FUNCTION pdb.json_to_lindera AS ASSIGNMENT;
+-- CREATE CAST (jsonb AS pdb.lindera) WITH FUNCTION pdb.jsonb_to_lindera AS ASSIGNMENT;
 /* </end connected objects> */
 
 /* <begin connected objects> */

@@ -59,19 +59,21 @@ AS 'MODULE_PATHNAME', 'agg_fn_placeholder_wrapper';
 -- pg_search::api::tokenizers::definitions::pdb::text_array_to_lindera
 -- requires:
 --   tokenize_lindera
-CREATE  FUNCTION pdb."text_array_to_lindera"(
-	"arr" text[] /* pg_search::api::tokenizers::GenericTypeWrapper<alloc::vec::Vec<alloc::string::String>> */
-) RETURNS pdb.lindera /* pg_search::api::tokenizers::GenericTypeWrapper<pg_search::api::tokenizers::definitions::pdb::Lindera> */
-IMMUTABLE STRICT PARALLEL SAFE
-LANGUAGE c /* Rust */
-AS 'MODULE_PATHNAME', 'text_array_to_lindera_wrapper';
+-- REMOVED: Lindera support has been removed from pg_search
+-- CREATE  FUNCTION pdb."text_array_to_lindera"(
+-- 	"arr" text[] /* pg_search::api::tokenizers::GenericTypeWrapper<alloc::vec::Vec<alloc::string::String>> */
+-- ) RETURNS pdb.lindera /* pg_search::api::tokenizers::GenericTypeWrapper<pg_search::api::tokenizers::definitions::pdb::Lindera> */
+-- IMMUTABLE STRICT PARALLEL SAFE
+-- LANGUAGE c /* Rust */
+-- AS 'MODULE_PATHNAME', 'text_array_to_lindera_wrapper';
 /* </end connected objects> */
 /* <begin connected objects> */
 -- pg_search/src/api/tokenizers/definitions.rs:261
 -- requires:
 --   lindera_definition
 --   text_array_to_lindera
-CREATE CAST (text[] AS pdb.lindera) WITH FUNCTION pdb.text_array_to_lindera AS ASSIGNMENT;
+-- REMOVED: Lindera support has been removed from pg_search
+-- CREATE CAST (text[] AS pdb.lindera) WITH FUNCTION pdb.text_array_to_lindera AS ASSIGNMENT;
 /* </end connected objects> */
 /* <begin connected objects> */
 -- pg_search/src/api/tokenizers/definitions.rs:201

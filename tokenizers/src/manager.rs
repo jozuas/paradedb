@@ -21,12 +21,8 @@ use std::fmt::Write;
 #[cfg(feature = "icu")]
 use crate::icu::ICUTokenizer;
 use crate::{
-    cjk::ChineseTokenizer,
-    code::CodeTokenizer,
-    jieba::JiebaTokenizer,
-    lindera::{LinderaChineseTokenizer, LinderaJapaneseTokenizer, LinderaKoreanTokenizer},
-    token_length::TokenLengthFilter,
-    token_trim::TokenTrimFilter,
+    cjk::ChineseTokenizer, code::CodeTokenizer, jieba::JiebaTokenizer,
+    token_length::TokenLengthFilter, token_trim::TokenTrimFilter,
     unicode_words::UnicodeWordsTokenizer,
 };
 
@@ -329,9 +325,6 @@ pub enum SearchTokenizer {
         prefix_only: bool,
         filters: SearchTokenizerFilters,
     },
-    ChineseLindera(SearchTokenizerFilters),
-    JapaneseLindera(SearchTokenizerFilters),
-    KoreanLindera(SearchTokenizerFilters),
     #[cfg(feature = "icu")]
     #[strum(serialize = "icu")]
     ICUTokenizer(SearchTokenizerFilters),
@@ -339,7 +332,6 @@ pub enum SearchTokenizer {
         chinese_convert: Option<ConvertMode>,
         filters: SearchTokenizerFilters,
     },
-    Lindera(LinderaLanguage, SearchTokenizerFilters),
     UnicodeWordsDeprecated {
         remove_emojis: bool,
         filters: SearchTokenizerFilters,
@@ -348,15 +340,6 @@ pub enum SearchTokenizer {
         remove_emojis: bool,
         filters: SearchTokenizerFilters,
     },
-}
-
-#[derive(Default, Serialize, Clone, Debug, PartialEq, Eq, strum_macros::VariantNames, AsRefStr)]
-pub enum LinderaLanguage {
-    #[default]
-    Unspecified,
-    Chinese,
-    Japanese,
-    Korean,
 }
 
 impl Default for SearchTokenizer {
@@ -416,9 +399,6 @@ impl SearchTokenizer {
                     filters,
                 })
             }
-            "chinese_lindera" => Ok(SearchTokenizer::ChineseLindera(filters)),
-            "japanese_lindera" => Ok(SearchTokenizer::JapaneseLindera(filters)),
-            "korean_lindera" => Ok(SearchTokenizer::KoreanLindera(filters)),
             #[cfg(feature = "icu")]
             "icu" => Ok(SearchTokenizer::ICUTokenizer(filters)),
             "jieba" => {
@@ -509,18 +489,6 @@ impl SearchTokenizer {
                     add_filters!(CodeTokenizer::default(), filters)
                 }
             }
-            SearchTokenizer::ChineseLindera(filters)
-            | SearchTokenizer::Lindera(LinderaLanguage::Chinese, filters) => {
-                add_filters!(LinderaChineseTokenizer::default(), filters)
-            }
-            SearchTokenizer::JapaneseLindera(filters)
-            | SearchTokenizer::Lindera(LinderaLanguage::Japanese, filters) => {
-                add_filters!(LinderaJapaneseTokenizer::default(), filters)
-            }
-            SearchTokenizer::KoreanLindera(filters)
-            | SearchTokenizer::Lindera(LinderaLanguage::Korean, filters) => {
-                add_filters!(LinderaKoreanTokenizer::default(), filters)
-            }
             #[cfg(feature = "icu")]
             SearchTokenizer::ICUTokenizer(filters) => {
                 add_filters!(ICUTokenizer, filters)
@@ -538,9 +506,6 @@ impl SearchTokenizer {
                 } else {
                     add_filters!(JiebaTokenizer::new(), filters)
                 }
-            }
-            SearchTokenizer::Lindera(LinderaLanguage::Unspecified, _) => {
-                panic!("LinderaStyle::Unspecified is not supported")
             }
             SearchTokenizer::UnicodeWords {
                 remove_emojis,
@@ -571,10 +536,6 @@ impl SearchTokenizer {
             SearchTokenizer::ChineseCompatible(filters) => filters,
             SearchTokenizer::SourceCode(filters) => filters,
             SearchTokenizer::Ngram { filters, .. } => filters,
-            SearchTokenizer::ChineseLindera(filters) => filters,
-            SearchTokenizer::JapaneseLindera(filters) => filters,
-            SearchTokenizer::KoreanLindera(filters) => filters,
-            SearchTokenizer::Lindera(_, filters) => filters,
             #[cfg(feature = "icu")]
             SearchTokenizer::ICUTokenizer(filters) => filters,
             SearchTokenizer::Jieba { filters, .. } => filters,
@@ -635,17 +596,6 @@ impl SearchTokenizer {
                 prefix_only,
                 filters: _,
             } => format!("ngram_mingram:{min_gram}_maxgram:{max_gram}_prefixonly:{prefix_only}{filters_suffix}"),
-            SearchTokenizer::ChineseLindera(_filters) => format!("chinese_lindera{filters_suffix}"),
-            SearchTokenizer::JapaneseLindera(_filters) => {
-                format!("japanese_lindera{filters_suffix}")
-            }
-            SearchTokenizer::KoreanLindera(_filters) => format!("korean_lindera{filters_suffix}"),
-            SearchTokenizer::Lindera(style, _filters) => match style {
-                LinderaLanguage::Unspecified => panic!("LinderaStyle::Unspecified is not supported"),
-                LinderaLanguage::Chinese => format!("chinese_lindera{filters_suffix}"),
-                LinderaLanguage::Japanese => format!("japanese_lindera{filters_suffix}"),
-                LinderaLanguage::Korean => format!("korean_lindera{filters_suffix}"),
-            }
             #[cfg(feature = "icu")]
             SearchTokenizer::ICUTokenizer(_filters) => format!("icu{filters_suffix}"),
             SearchTokenizer::Jieba {
@@ -942,123 +892,12 @@ mod tests {
     }
 
     #[rstest]
-    fn test_korean_lindera_tokenizer_with_trim_filter() {
-        use tantivy::tokenizer::TokenStream;
-
-        // Test Korean Lindera tokenizer with trim filter
-        let json = r#"{
-            "type": "korean_lindera",
-            "trim": true
-        }"#;
-
-        let tokenizer =
-            SearchTokenizer::from_json_value(&serde_json::from_str(json).unwrap()).unwrap();
-
-        assert_eq!(
-            tokenizer,
-            SearchTokenizer::KoreanLindera(SearchTokenizerFilters {
-                remove_short: None,
-                remove_long: None,
-                lowercase: None,
-                stemmer: None,
-                stopwords_language: None,
-                stopwords: None,
-                ascii_folding: None,
-                trim: Some(true),
-                normalizer: None,
-                alpha_num_only: None,
-            })
-        );
-
-        // Test that the tokenizer is created successfully
-        let mut analyzer = tokenizer.to_tantivy_tokenizer().unwrap();
-
-        // Test tokenizing Korean text with spaces
-        // "아름다운 우리나라" (Beautiful our country)
-        let text = "아름다운 우리나라";
-        let mut token_stream = analyzer.token_stream(text);
-
-        let mut tokens = Vec::new();
-        while token_stream.advance() {
-            let token = token_stream.token();
-            tokens.push(token.text.clone());
-        }
-
-        // Verify that space tokens are filtered out
-        assert!(!tokens.contains(&" ".to_string()));
-        assert!(!tokens.iter().any(|t| t.trim().is_empty()));
-
-        // Verify that Korean words are still present
-        assert!(!tokens.is_empty());
-    }
-
-    #[rstest]
-    fn test_chinese_lindera_tokenizer_preserves_whitespace() {
-        use tantivy::tokenizer::TokenStream;
-
-        // Test Chinese Lindera tokenizer preserves whitespace by default
-        // (backward compatible behavior)
-        let json = r#"{
-            "type": "chinese_lindera"
-        }"#;
-
-        let tokenizer =
-            SearchTokenizer::from_json_value(&serde_json::from_str(json).unwrap()).unwrap();
-
-        // Test that the tokenizer is created successfully
-        let mut analyzer = tokenizer.to_tantivy_tokenizer().unwrap();
-
-        // Test tokenizing text with spaces
-        let text = "this is a test";
-        let mut token_stream = analyzer.token_stream(text);
-
-        let mut tokens = Vec::new();
-        while token_stream.advance() {
-            let token = token_stream.token();
-            tokens.push(token.text.clone());
-        }
-
-        // Verify that space tokens are preserved (backward compatible behavior)
-        assert!(tokens.contains(&" ".to_string()));
-
-        // Verify that words are still present
-        assert!(tokens.contains(&"this".to_string()));
-        assert!(tokens.contains(&"is".to_string()));
-        assert!(tokens.contains(&"a".to_string()));
-        assert!(tokens.contains(&"test".to_string()));
-    }
-
-    #[rstest]
     fn test_trim_filter_with_multiple_tokenizers() {
         use tantivy::tokenizer::TokenStream;
 
         // Test that trim filter works across different tokenizers
 
-        // Test 1: Chinese Lindera tokenizer with trim filter
-        let json_lindera = r#"{
-            "type": "chinese_lindera",
-            "trim": true
-        }"#;
-
-        let tokenizer_lindera =
-            SearchTokenizer::from_json_value(&serde_json::from_str(json_lindera).unwrap()).unwrap();
-        let mut analyzer_lindera = tokenizer_lindera.to_tantivy_tokenizer().unwrap();
-
-        let text_lindera = "富裕 劳动力";
-        let mut token_stream_lindera = analyzer_lindera.token_stream(text_lindera);
-
-        let mut tokens_lindera = Vec::new();
-        while token_stream_lindera.advance() {
-            let token = token_stream_lindera.token();
-            tokens_lindera.push(token.text.clone());
-        }
-
-        // Verify no whitespace tokens
-        assert!(!tokens_lindera.contains(&" ".to_string()));
-        assert!(!tokens_lindera.iter().any(|t| t.trim().is_empty()));
-        assert!(!tokens_lindera.is_empty());
-
-        // Test 2: Chinese Compatible tokenizer with trim filter
+        // Test: Chinese Compatible tokenizer with trim filter
         let json_chinese = r#"{
             "type": "chinese_compatible",
             "trim": true

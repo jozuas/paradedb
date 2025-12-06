@@ -19,7 +19,7 @@ use crate::api::tokenizers::typmod;
 use crate::api::tokenizers::typmod::validation::{rule, PropertyRule, ValueConstraint};
 use crate::api::tokenizers::typmod::{load_typmod, ParsedTypmod, TypmodSchema};
 use tokenizers::chinese_convert::ConvertMode;
-use tokenizers::manager::{LinderaLanguage, SearchTokenizerFilters};
+use tokenizers::manager::SearchTokenizerFilters;
 use tokenizers::SearchNormalizer;
 
 pub struct AliasTypmod(Option<String>);
@@ -53,12 +53,6 @@ pub struct NgramTypmod {
 // for pdb.regex_pattern
 pub struct RegexTypmod {
     pub pattern: regex::Regex,
-    pub filters: SearchTokenizerFilters,
-}
-
-// for pdb.lindera
-pub struct LinderaTypmod {
-    pub language: LinderaLanguage,
     pub filters: SearchTokenizerFilters,
 }
 
@@ -126,17 +120,6 @@ impl TypmodRules for RegexTypmod {
         vec![rule!(
             "pattern",
             ValueConstraint::Regex,
-            required,
-            positional = 0
-        )]
-    }
-}
-
-impl TypmodRules for LinderaTypmod {
-    fn rules() -> Vec<PropertyRule> {
-        vec![rule!(
-            "language",
-            ValueConstraint::StringChoice(vec!["chinese", "japanese", "korean"]),
             required,
             positional = 0
         )]
@@ -242,31 +225,6 @@ impl TryFrom<i32> for RegexTypmod {
             .ok_or(typmod::Error::MissingKey("pattern"))??;
 
         Ok(RegexTypmod { pattern, filters })
-    }
-}
-
-impl TryFrom<i32> for LinderaTypmod {
-    type Error = typmod::Error;
-
-    fn try_from(typmod: i32) -> Result<Self, Self::Error> {
-        let parsed = Self::parsed(typmod)?;
-        let filters = SearchTokenizerFilters::from(&parsed);
-        let language = parsed
-            .try_get("language", 0)
-            .map(|p| match p.as_str() {
-                None => panic!("missing language"),
-                Some(s) => {
-                    let lcase = s.to_lowercase();
-                    match lcase.as_str() {
-                        "chinese" => LinderaLanguage::Chinese,
-                        "japanese" => LinderaLanguage::Japanese,
-                        "korean" => LinderaLanguage::Korean,
-                        other => panic!("unknown lindera language: {other}"),
-                    }
-                }
-            })
-            .ok_or(typmod::Error::MissingKey("language"))?;
-        Ok(LinderaTypmod { language, filters })
     }
 }
 

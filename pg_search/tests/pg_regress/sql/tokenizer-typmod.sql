@@ -16,17 +16,6 @@ SELECT 'Running Shoes.  olé'::pdb.chinese_compatible::text[];
 SELECT 'Running Shoes.  olé'::pdb.chinese_compatible('lowercase=false')::text[];
 SELECT 'Running Shoes.  olé'::pdb.chinese_compatible('lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
 
-SELECT 'Running Shoes.  olé'::pdb.lindera::text[]; -- error, needs a language
-SELECT 'Running Shoes.  olé'::pdb.lindera('language=chinese')::text[]; -- error, needs a language
-SELECT 'Running Shoes.  olé'::pdb.lindera('language=japanese')::text[]; -- error, needs a language
-SELECT 'Running Shoes.  olé'::pdb.lindera('language=korean')::text[]; -- error, needs a language
-SELECT 'Running Shoes.  olé'::pdb.lindera(chinese, 'lowercase=false')::text[];
-SELECT 'Running Shoes.  olé'::pdb.lindera(chinese, 'lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
-SELECT 'Running Shoes.  olé'::pdb.lindera(japanese, 'lowercase=false')::text[];
-SELECT 'Running Shoes.  olé'::pdb.lindera(japanese, 'lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
-SELECT 'Running Shoes.  olé'::pdb.lindera(korean, 'lowercase=false')::text[];
-SELECT 'Running Shoes.  olé'::pdb.lindera(korean, 'lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
-
 SELECT 'Running Shoes.  olé'::pdb.jieba::text[];
 SELECT 'Running Shoes.  olé'::pdb.jieba('lowercase=false')::text[];
 SELECT 'Running Shoes.  olé'::pdb.jieba('lowercase=false', 'stemmer=english', 'ascii_folding=true')::text[];
